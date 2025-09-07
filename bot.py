@@ -1,26 +1,35 @@
+import os
+from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
-import os
 
-# Токен бота (заміни на свій токен від BotFather)
-TOKEN = os.getenv("TELEGRAM_TOKEN", "тут_твій_токен")
+# Завантажуємо змінні середовища з .env
+load_dotenv()
 
+# Беремо токен
+TOKEN = os.getenv("TELEGRAM_TOKEN")
+
+if not TOKEN:
+    raise ValueError("TELEGRAM_TOKEN не знайдено у .env!")
+
+# Обробник команди /start
 def start(update: Update, context: CallbackContext):
-    update.message.reply_text(f"Привіт {update.effective_user.first_name}!")
+    user = update.effective_user
+    update.message.reply_text(f"Привіт {user.first_name}!")
 
+# Обробник будь-якого текстового повідомлення
 def echo(update: Update, context: CallbackContext):
-    update.message.reply_text(f"Привіт {update.effective_user.first_name}!")
+    user = update.effective_user
+    update.message.reply_text(f"Привіт {user.first_name}!")
 
 def main():
-    updater = Updater(TOKEN)
+    updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
 
-    # Команда /start
     dp.add_handler(CommandHandler("start", start))
-    # Будь-яке повідомлення
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
 
-    print("Бот запущений...")
+    print("Бот запущено...")
     updater.start_polling()
     updater.idle()
 
